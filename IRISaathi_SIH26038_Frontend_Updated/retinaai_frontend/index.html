@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IRISaathi | Explainable DR Screening</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div id="toast" class="toast"></div>
+
+  <!-- AUTH -->
+  <section id="authScreen" class="auth-screen">
+    <div class="auth-bg-grid"></div>
+    <div class="auth-glow auth-glow-1"></div>
+    <div class="auth-glow auth-glow-2"></div>
+    <div class="auth-layout">
+      <div class="auth-brand-panel">
+        <div class="brand brand-large">
+          <div class="brand-icon"><img src="assets/irisaathi-logo.png" alt="IRISaathi logo"></div>
+          <div>
+            <div class="brand-name">IRIS<span>aathi</span></div>
+            <div class="brand-sub">EXPLAINABLE RETINAL SCREENING</div>
+          </div>
+        </div>
+        <div class="brand-slogan>">See the evidence. Trust the decision. Screen anywhere.</div>
+        <div class="auth-copy">
+          <div class="eyebrow cyan">SMART INDIA HACKATHON 2026 • PS 26038</div>
+          <h1>From retinal image<br><span>to explainable care.</span></h1>
+          <p>Quality-aware diabetic retinopathy screening designed for rural and district-level tele-ophthalmology
+            workflows.</p>
+        </div>
+        <div class="auth-features">
+          <div><b>01</b><span>Image quality gate</span><small>DeepDRiD</small></div>
+          <div><b>02</b><span>Lesion + anatomy analysis</span><small>DRIVE / IDRiD</small></div>
+          <div><b>03</b><span>Clinical grading + XAI</span><small>APTOS + Grad-CAM</small></div>
+        </div>
+        <div class="auth-foot">Research / hackathon prototype • Not a standalone medical diagnosis</div>
+      </div>
+
+      <div class="auth-card">
+        <div id="authChoice">
+          <div class="auth-card-head">
+            <div class="mini-logo"><img src="assets/irisaathi-logo.png" alt="IRISaathi logo"></div>
+            <div>
+              <div class="eyebrow">WELCOME</div>
+              <h2>Registered already?</h2>
+            </div>
+          </div>
+          <p class="auth-intro">Choose how you want to enter the screening portal. Your patient ID is requested at every
+            login because it may change for each screening record.</p>
+          <button id="registeredBtn" class="auth-option"><span class="option-icon">✓</span><span><b>Yes, I am
+                registered</b><small>Login to an existing patient profile</small></span><strong>→</strong></button>
+          <button id="newAccountBtn" class="auth-option"><span class="option-icon">＋</span><span><b>No, create my
+                account</b><small>Register basic patient information</small></span><strong>→</strong></button>
+          <div class="demo-box"><span class="pulse"></span>
+            <div><b>Demo data available</b><small>Use the supplied SIH report case to explore the prototype.</small>
+            </div><button id="fillDemoBtn">Use demo</button>
+          </div>
+        </div>
+
+        <form id="registerForm" class="auth-form hidden">
+          <button type="button" class="back-btn" data-auth-back>← Back</button>
+          <div class="auth-card-head">
+            <div class="mini-logo"><img src="assets/irisaathi-logo.png" alt="IRISaathi logo"></div>
+            <div>
+              <div class="eyebrow">NEW PROFILE</div>
+              <h2>Create your account</h2>
+            </div>
+          </div>
+          <p class="auth-intro">Create a reusable patient profile. The patient ID is deliberately kept separate because
+            it can change between records or screening visits.</p>
+          <div class="form-grid two">
+            <div class="field full-span"><label>Full name</label><input id="regName" placeholder="Enter full name"
+                required /></div>
+            <div class="field"><label>Age</label><input id="regAge" type="number" min="1" max="120"
+                placeholder="e.g. 58" required /></div>
+            <div class="field"><label>Gender</label><select id="regGender" required>
+                <option value="">Select gender</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+              </select></div>
+            <div class="field"><label>Diabetes duration</label><input id="regDm" placeholder="e.g. 9 years" required />
+            </div>
+            <div class="field"><label>Create password</label><input id="regPassword" type="password" minlength="4"
+                placeholder="Minimum 4 characters" required /></div>
+          </div>
+          <div class="profile-id-preview">Your Profile ID: <strong id="newProfileId">—</strong><small>Save this ID for
+              future login.</small></div>
+          <button class="primary-btn full" type="submit">Create account & continue <span>→</span></button>
+        </form>
+
+        <form id="loginForm" class="auth-form hidden">
+          <button type="button" class="back-btn" data-auth-back>← Back</button>
+          <div class="auth-card-head">
+            <div class="mini-logo"><img src="assets/irisaathi-logo.png" alt="IRISaathi logo"></div>
+            <div>
+              <div class="eyebrow">PATIENT LOGIN</div>
+              <h2>Enter screening portal</h2>
+            </div>
+          </div>
+          <p class="auth-intro">Enter your registered profile and the <strong>Patient ID for this screening</strong>.
+            Patient ID can be different for a new record.</p>
+          <div class="field"><label>Profile ID</label><input id="loginProfileId" placeholder="e.g. RA-10482" required />
+          </div>
+          <div class="field"><label>Password</label><input id="loginPassword" type="password"
+              placeholder="Your password" required /></div>
+          <div class="field"><label>Patient ID <span class="required-note">required for each
+                screening</span></label><input id="loginPatientId" placeholder="e.g. PID-2026-8941" required /></div>
+          <button class="primary-btn full" type="submit">Login & open workspace <span>→</span></button>
+          <button type="button" class="text-btn" id="demoLoginBtn">Use SIH demo profile</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- APPLICATION -->
+  <section id="appScreen" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon"><img src="assets/irisaathi-logo.png" alt="IRISaathi logo"></div>
+        <div>
+          <div class="brand-name">IRIS<span>aathi</span></div>
+          <div class="brand-sub">SCREENING OS</div>
+        </div>
+      </div>
+      <div class="side-profile">
+        <div class="avatar" id="sideAvatar">HP</div>
+        <div><b id="sideName">Harish Patel</b><small id="sidePatient">PID-2026-8941</small></div>
+      </div>
+      <nav>
+        <button class="nav-item active" data-page="overview"><span>⌂</span> Overview</button>
+        <button class="nav-item" data-page="screening"><span>◎</span> New Screening</button>
+        <button class="nav-item" data-page="history"><span>◷</span> Patient Records</button>
+        <button class="nav-item" data-page="analysis"><span>◌</span> Explainability</button>
+        <button class="nav-item" data-page="report"><span>▤</span> Clinical Report</button>
+        <button class="nav-item" data-page="simulation"><span>◈</span> Simulink Flow</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="model-chip"><span class="status-dot"></span>
+          <div><strong>AI Pipeline Ready</strong><small>Backend-ready • Demo mode</small></div>
+        </div>
+        <button id="logoutBtn" class="logout">↪ Sign out</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">RAMPUR COMMUNITY HEALTH CENTER • CHC #4</div>
+          <div class="top-tagline">See the evidence. Trust the decision. Screen anywhere.</div>
+          <h1 id="pageTitle">Screening overview</h1>
+        </div>
+        <div class="top-actions">
+          <div class="connection"><span class="status-dot"></span> System online</div>
+          <div class="operator"><span id="topPatientName">Harish Patel</span><small
+              id="topPatientId">PID-2026-8941</small></div>
+        </div>
+      </header>
+
+      <!-- OVERVIEW -->
+      <div id="page-overview" class="page">
+        <div class="hero">
+          <div class="hero-copy">
+            <div class="eyebrow cyan">SIH PS 26038</div>
+            <h2>Clinical screening with<br><span>evidence, not just a score.</span></h2>
+            <p>IRISaathi combines image quality assessment, enhancement, retinal anatomy, lesion evidence, DR grading,
+              calibrated confidence and human review.</p><button class="primary-btn" data-go="screening">Start new
+              screening <span>→</span></button>
+          </div>
+          <div class="hero-visual">
+            <div class="orbital-ring ring-a"></div>
+            <div class="orbital-ring ring-b"></div>
+            <div class="retina-orb">◉<span></span></div>
+            <div class="orb-tag tag-a">IQA</div>
+            <div class="orb-tag tag-b">LESIONS</div>
+            <div class="orb-tag tag-c">XAI</div>
+            <div class="orb-tag tag-d">REPORT</div>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card"><span>Current patient</span><strong id="overviewPatient">Harish Patel</strong><small
+              id="overviewPatientMeta">58 yrs • Male • Right Eye (OD)</small></div>
+          <div class="stat-card"><span>Current patient ID</span><strong
+              id="overviewPid">PID-2026-8941</strong><small>Changeable per screening record</small></div>
+          <div class="stat-card"><span>Total patients till now</span><strong id="totalPatients">1</strong><small>Unique
+              registered profiles</small></div>
+          <div class="stat-card"><span>Total screenings</span><strong id="overviewScreenings">1</strong><small>All
+              screening records</small></div>
+          <div class="stat-card"><span>Pipeline modules</span><strong>8 / 8</strong><small>Quality → Simulation</small>
+          </div>
+          <div class="stat-card"><span>Review target</span><strong>&lt; 30 sec</strong><small>Human-in-the-loop
+              workflow</small></div>
+        </div>
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">WORKFLOW</div>
+            <h3>End-to-end screening pipeline</h3>
+          </div><span class="section-note">Deployment-oriented architecture</span>
+        </div>
+        <div class="workflow">
+          <div class="flow-node"><b>01</b><strong>Fundus image</strong><small>Upload / camera</small></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><b>02</b><strong>Image quality</strong><small>DeepDRiD</small></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><b>03</b><strong>Enhancement</strong><small>CLAHE + normalization</small></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><b>04</b><strong>Structures</strong><small>DRIVE + IDRiD</small></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><b>05</b><strong>Lesions</strong><small>MA / EX / HE / SE</small></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><b>06</b><strong>DR grade</strong><small>APTOS • 0–4</small></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><b>07</b><strong>XAI</strong><small>Grad-CAM + evidence</small></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node"><b>08</b><strong>Report</strong><small>Review + Simulink</small></div>
+        </div>
+        <div class="info-strip">
+          <div><span class="strip-icon">✦</span>
+            <div><b>Why quality-gating matters</b><small>Borderline images can be enhanced; ungradable images can be
+                rejected with recapture feedback before diagnosis.</small></div>
+          </div>
+          <div class="strip-pill">CLINICAL SAFETY GATE</div>
+        </div>
+      </div>
+
+      <!-- PATIENT RECORDS -->
+      <div id="page-history" class="page hidden">
+        <div class="page-intro">
+          <div>
+            <div class="eyebrow cyan">PATIENT REGISTRY</div>
+            <h2>Previous patient details</h2>
+            <p>View registered patient profiles and screening records stored in this browser for the prototype.</p>
+          </div>
+          <div class="record-total"><strong id="historyTotalPatients">1</strong><span>Total patients till now</span>
+          </div>
+        </div>
+        <div class="history-summary">
+          <div class="history-summary-card"><span>Total patients</span><strong
+              id="historyTotalCard">1</strong><small>Unique registered profiles</small></div>
+          <div class="history-summary-card"><span>Total screening records</span><strong
+              id="totalScreenings">0</strong><small>Patient IDs can change per visit</small></div>
+          <div class="history-summary-card"><span>Current patient</span><strong
+              id="historyCurrentPatient">—</strong><small id="historyCurrentPid">—</small></div>
+        </div>
+        <div class="history-card">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">REGISTERED PROFILES</div>
+              <h3>Patient details</h3>
+            </div><span class="badge success">LOCAL DEMO REGISTRY</span>
+          </div>
+          <div class="table-wrap">
+            <table class="patient-table">
+              <thead>
+                <tr>
+                  <th>Profile ID</th>
+                  <th>Name</th>
+                  <th>Age</th>
+                  <th>Gender</th>
+                  <th>Diabetes duration</th>
+                  <th>Latest Patient ID</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="patientRegistryBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="history-card">
+          <div class="card-head">
+            <div>
+              <div class="eyebrow">SCREENING HISTORY</div>
+              <h3>Previous screening records</h3>
+            </div><span class="section-note">Patient ID is record-specific</span>
+          </div>
+          <div class="table-wrap">
+            <table class="patient-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Patient ID</th>
+                  <th>Scan ID</th>
+                  <th>Patient</th>
+                  <th>Eye</th>
+                  <th>Result</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="screeningHistoryBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="history-note"><b>Privacy note:</b> This frontend prototype stores demo registration and history data
+          in browser localStorage. For the final SIH implementation, move patient data to an authenticated backend
+          database with appropriate access control.</div>
+      </div>
+
+      <!-- SCREENING -->
+      <div id="page-screening" class="page hidden">
+        <div class="page-intro">
+          <div>
+            <div class="eyebrow cyan">01 / IMAGE ACQUISITION</div>
+            <h2>Start a new retinal screening</h2>
+            <p>Upload a fundus image and run the prototype workflow stage by stage.</p>
+          </div>
+          <div class="scan-id">SCAN ID <strong id="scanId">SCAN-38DE3C22</strong></div>
+        </div>
+        <div class="screen-grid">
+          <div class="upload-card">
+            <div id="dropZone" class="drop-zone">
+              <input type="file" id="imageInput" accept="image/png,image/jpeg,image/jpg" hidden />
+              <div id="uploadEmpty">
+                <div class="upload-icon">↑</div>
+                <h3>Drop fundus image here</h3>
+                <p>PNG, JPG or JPEG • Recommended: clear macula and optic disc view</p><button class="secondary-btn"
+                  type="button" id="browseBtn">Browse image</button>
+              </div>
+              <div id="uploadPreview" class="upload-preview hidden"><img id="previewImg" alt="Uploaded fundus image" />
+                <div class="preview-meta"><strong id="fileName">fundus.jpg</strong><span id="fileSize">—</span></div>
+                <button type="button" class="ghost-btn" id="removeImage">Remove</button>
+              </div>
+            </div>
+            <div class="patient-context">
+              <div class="context-title"><span>Patient context</span><button id="changePatientBtn"
+                  class="text-btn small">Change patient ID</button></div>
+              <div class="context-grid">
+                <div><span>Name</span><b id="screenName">Harish Patel</b></div>
+                <div><span>Patient ID</span><b id="screenPid">PID-2026-8941</b></div>
+                <div><span>Age / Gender</span><b id="screenAgeGender">58 / Male</b></div>
+                <div><span>Diabetes</span><b id="screenDm">9 years</b></div>
+              </div>
+            </div>
+            <div class="patient-form">
+              <div><label>Eye examined</label><select id="eyeExamined">
+                  <option>Right Eye (OD)</option>
+                  <option>Left Eye (OS)</option>
+                  <option>Both Eyes</option>
+                </select></div>
+              <div><label>HbA1c</label><input id="hba1c" value="8.2%" /></div>
+              <div class="full-span"><label>Screening center</label><input id="center"
+                  value="Rampur Community Health Center (CHC #4)" /></div>
+            </div>
+            <button class="primary-btn full analyze-btn" id="analyzeBtn" disabled>Run complete screening pipeline
+              <span>→</span></button>
+          </div>
+          <div class="pipeline-card">
+            <div class="card-head">
+              <div>
+                <div class="eyebrow">LIVE PIPELINE</div>
+                <h3>Processing stages</h3>
+              </div><span id="pipelineStatus" class="badge neutral">WAITING</span>
+            </div>
+            <div id="pipelineSteps">
+              <div class="pipeline-step" data-step="1"><span class="step-icon">01</span>
+                <div><strong>Image Quality Model</strong><small>DeepDRiD • focus / illumination / FOV</small></div><span
+                  class="step-state">Pending</span>
+              </div>
+              <div class="pipeline-step" data-step="2"><span class="step-icon">02</span>
+                <div><strong>Image Enhancement</strong><small>Adaptive CLAHE + normalization</small></div><span
+                  class="step-state">Pending</span>
+              </div>
+              <div class="pipeline-step" data-step="3"><span class="step-icon">03</span>
+                <div><strong>Retinal Structures</strong><small>Vessels • optic disc • fovea</small></div><span
+                  class="step-state">Pending</span>
+              </div>
+              <div class="pipeline-step" data-step="4"><span class="step-icon">04</span>
+                <div><strong>Lesion Detection</strong><small>MA • EX • HE • SE</small></div><span
+                  class="step-state">Pending</span>
+              </div>
+              <div class="pipeline-step" data-step="5"><span class="step-icon">05</span>
+                <div><strong>DR Severity Model</strong><small>APTOS • International clinical scale</small></div><span
+                  class="step-state">Pending</span>
+              </div>
+              <div class="pipeline-step" data-step="6"><span class="step-icon">06</span>
+                <div><strong>Explainable AI</strong><small>Grad-CAM + lesion-level evidence</small></div><span
+                  class="step-state">Pending</span>
+              </div>
+              <div class="pipeline-step" data-step="7"><span class="step-icon">07</span>
+                <div><strong>Confidence Calibration</strong><small>Calibrated probability / uncertainty</small></div>
+                <span class="step-state">Pending</span>
+              </div>
+              <div class="pipeline-step" data-step="8"><span class="step-icon">08</span>
+                <div><strong>Clinical Report</strong><small>Automated report + review queue</small></div><span
+                  class="step-state">Pending</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANALYSIS -->
+      <div id="page-analysis" class="page hidden">
+        <div class="page-intro">
+          <div>
+            <div class="eyebrow cyan">EXPLAINABLE AI</div>
+            <h2>Evidence behind the prediction</h2>
+            <p>Grad-CAM saliency is paired with lesion-level and anatomical evidence for human review.</p>
+          </div>
+          <div id="analysisGrade" class="grade-pill">LEVEL 0 • NO DR</div>
+        </div>
+        <div class="analysis-grid">
+          <div class="visual-card">
+            <div class="visual-tabs"><button class="visual-tab active" data-visual="original">Original</button><button
+                class="visual-tab" data-visual="heatmap">Grad-CAM</button><button class="visual-tab"
+                data-visual="lesions">Lesions</button><button class="visual-tab" data-visual="overlay">Evidence</button>
+            </div>
+            <div class="visual-stage"><img id="analysisImage" class="analysis-image" alt="Retinal analysis" />
+              <div id="heatOverlay" class="heat-overlay hidden"></div>
+              <div id="lesionBoxes" class="lesion-layer hidden"><span class="lesion-box b1">MA</span><span
+                  class="lesion-box b2">EX</span><span class="lesion-box b3">HE</span></div>
+              <div class="visual-watermark">IRISaathi • RESEARCH PROTOTYPE</div>
+            </div>
+          </div>
+          <div class="evidence-card">
+            <div class="card-head">
+              <div>
+                <div class="eyebrow">PREDICTION</div>
+                <h3 id="resultTitle">Level 0 — No DR</h3>
+              </div><span class="confidence-ring" id="confidenceRing">42.9%</span>
+            </div>
+            <div class="result-line"><span class="dot green"></span><strong id="referableText">NON-REFERABLE
+                DR</strong><small>Calibrated confidence</small></div>
+            <div class="prob-list">
+              <div><span>No DR</span><b>42.9%</b><i><em style="width:42.9%"></em></i></div>
+              <div><span>Mild</span><b>22.1%</b><i><em style="width:22.1%"></em></i></div>
+              <div><span>Moderate</span><b>18.7%</b><i><em style="width:18.7%"></em></i></div>
+              <div><span>Severe</span><b>10.4%</b><i><em style="width:10.4%"></em></i></div>
+              <div><span>Proliferative</span><b>6.0%</b><i><em style="width:6%"></em></i></div>
+            </div>
+            <div class="metric-grid">
+              <div><span>IQA</span><strong>70 / 100</strong><small>Borderline • enhanced</small></div>
+              <div><span>Entropy</span><strong>0.879</strong><small>Uncertainty measure</small></div>
+              <div><span>Vessels</span><strong>Detected</strong><small>DRIVE segmentation</small></div>
+              <div><span>OD / Fovea</span><strong>Located</strong><small>IDRiD landmarks</small></div>
+            </div>
+          </div>
+        </div>
+        <div class="evidence-lower">
+          <div class="evidence-list">
+            <div class="card-head">
+              <div>
+                <div class="eyebrow">LESION EVIDENCE</div>
+                <h3>Clinical features</h3>
+              </div><span class="badge warning">DEMO CASE</span>
+            </div>
+            <div class="lesion-row"><span class="lesion-key ma">MA</span>
+              <div><b>Microaneurysms</b><small>Candidate lesion regions</small></div><strong>5,100</strong>
+            </div>
+            <div class="lesion-row"><span class="lesion-key he">HE</span>
+              <div><b>Hemorrhages</b><small>Candidate lesion regions</small></div><strong>475</strong>
+            </div>
+            <div class="lesion-row"><span class="lesion-key ex">EX</span>
+              <div><b>Hard exudates</b><small>Candidate lesion regions</small></div><strong>237</strong>
+            </div>
+            <div class="risk-callout"><b>Macular zone involvement: YES</b><span>Demo report flags potential DME risk
+                evidence. Final grading must be cross-checked by the integrated model.</span></div>
+          </div>
+          <div class="review-card">
+            <div class="card-head">
+              <div>
+                <div class="eyebrow">HUMAN-IN-THE-LOOP</div>
+                <h3>Ophthalmologist review</h3>
+              </div><span class="badge success">READY</span>
+            </div>
+            <div class="review-score">
+              <div><strong>28 sec</strong><small>Target review time</small></div>
+              <div><strong>Inferior-Nasal</strong><small>Dominant saliency quadrant</small></div>
+            </div>
+            <div class="review-actions"><button class="secondary-btn" id="approveBtn">✓ Mark reviewed</button><button
+                class="ghost-btn" id="flagBtn">⚑ Flag for specialist</button></div><small class="disclaimer">Prototype
+              output only. Clinical correlation is mandatory.</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORT -->
+      <div id="page-report" class="page hidden">
+        <div class="page-intro">
+          <div>
+            <div class="eyebrow cyan">AUTOMATED CLINICAL REPORT</div>
+            <h2>Screening report</h2>
+            <p>A structured report prepared for rapid ophthalmologist validation.</p>
+          </div><button id="printReportBtn" class="secondary-btn">Print / Save PDF</button>
+        </div>
+        <div id="printableReport" class="report-sheet">
+          <div class="report-head">
+            <div class="brand">
+              <div class="brand-icon"><img src="assets/irisaathi-logo.png" alt="IRISaathi logo"></div>
+              <div>
+                <div class="brand-name">IRIS<span>aathi</span></div>
+                <div class="brand-sub">TELE-OPHTHALMOLOGY SCREENING</div>
+              </div>
+            </div>
+            <div><b>SIH PS 26038</b><small id="reportDate">12 Sep 2026</small></div>
+          </div>
+          <div class="report-title">
+            <h3>Automated Explainable Diabetic Retinopathy Screening Report</h3><span class="badge success">RESEARCH
+              PROTOTYPE</span>
+          </div>
+          <div class="report-meta">
+            <div><span>Center</span><b id="rCenter">Rampur Community Health Center (CHC #4)</b></div>
+            <div><span>Operator ID</span><b>OP-TECH-104</b></div>
+            <div><span>Scan ID</span><b id="rScan">SCAN-38DE3C22</b></div>
+            <div><span>Patient ID</span><b id="rPid">PID-2026-8941</b></div>
+            <div><span>Patient</span><b id="rName">Harish Patel</b></div>
+            <div><span>Age / Gender</span><b id="rAgeGender">58 yrs / Male</b></div>
+            <div><span>Eye</span><b id="rEye">Right Eye (OD)</b></div>
+            <div><span>Duration of DM</span><b id="rDm">9 years</b></div>
+            <div><span>HbA1c</span><b id="rHba">8.2%</b></div>
+          </div>
+          <div class="report-result">
+            <div><span>PRIMARY SCREENING FINDING</span><strong>Level 0: No Diabetic Retinopathy</strong><b>NON-REFERABLE
+                DR • Calibrated confidence 42.9%</b></div>
+            <div class="report-grade">0</div>
+          </div>
+          <div class="report-sections">
+            <section>
+              <h4>Image quality & processing</h4>
+              <p><b>Borderline (70/100).</b> Adaptive CLAHE enhancement applied. Focus, illumination and field-of-view
+                checks passed the prototype quality gate after enhancement.</p>
+            </section>
+            <section>
+              <h4>Visual evidence</h4>
+              <p>Grad-CAM saliency and lesion/anatomical overlays are available for review. Dominant saliency quadrant:
+                <b>Inferior-Nasal</b>.
+              </p>
+            </section>
+            <section>
+              <h4>Lesion quantification</h4>
+              <div class="report-table">
+                <div><span>Microaneurysms</span><b>5,100</b></div>
+                <div><span>Hemorrhages</span><b>475</b></div>
+                <div><span>Hard Exudates</span><b>237</b></div>
+                <div><span>Macular Zone Involvement</span><b>YES</b></div>
+              </div>
+            </section>
+            <section>
+              <h4>Recommended clinical action</h4>
+              <p>Routine annual re-screening at the primary health center. Reinforce diabetic diet, physical activity,
+                and HbA1c target &lt; 7.0%.</p>
+            </section>
+          </div>
+          <div class="report-warning"><b>Important:</b> The supplied demo report contains lesion-quantification values
+            that are internally inconsistent with a Level 0/no-lesion conclusion. This prototype displays them as
+            source-case evidence; the final integrated backend should perform a lesion–grade consistency check before
+            issuing a clinical result.</div>
+          <div class="signature-row">
+            <div><span>Reviewing tele-ophthalmologist</span><b>Dr. S. K. Sharma, MD (Ophthal)</b><small>Electronic
+                signature recorded • Validation date: 2026-09-12</small></div>
+            <div><span>System</span><b>MATLAB DL • Grad-CAM</b><small>Simulink deployment model</small></div>
+          </div>
+          <div class="medical-disclaimer">Medical disclaimer: This is a research/hackathon prototype for automated
+            screening triage. It does not constitute a definitive standalone diagnosis. Clinical correlation with
+            appropriate ophthalmic examination is mandatory.</div>
+        </div>
+      </div>
+
+      <!-- SIMULATION -->
+      <div id="page-simulation" class="page hidden">
+        <div class="page-intro">
+          <div>
+            <div class="eyebrow cyan">SIMULINK WORKFLOW</div>
+            <h2>District-scale resource simulation</h2>
+            <p>Explore how patient volume, bandwidth, AI throughput and ophthalmologist capacity affect the screening
+              queue.</p>
+          </div><span class="badge success">MODEL READY</span>
+        </div>
+        <div class="sim-grid">
+          <div class="sim-controls">
+            <div class="card-head">
+              <div>
+                <div class="eyebrow">INPUT PARAMETERS</div>
+                <h3>Scenario controls</h3>
+              </div>
+            </div><label>Patients / year <output id="patientsOut">100,000</output><input id="patientsSlider"
+                type="range" min="10000" max="250000" step="10000" value="100000"></label><label>AI processing / image
+              <output id="aiOut">2.0 s</output><input id="aiSlider" type="range" min="0.5" max="10" step="0.5"
+                value="2"></label><label>Doctor review / case <output id="docOut">28 s</output><input id="docSlider"
+                type="range" min="10" max="90" step="1" value="28"></label><label>Bandwidth <output id="bandOut">10
+                Mbps</output><input id="bandSlider" type="range" min="1" max="50" step="1" value="10"></label>
+            <div class="sim-note">Frontend model • replace with validated Simulink outputs during integration.</div>
+          </div>
+          <div class="sim-results">
+            <div class="card-head">
+              <div>
+                <div class="eyebrow">LIVE ESTIMATE</div>
+                <h3>Capacity & bottleneck</h3>
+              </div><span id="simBadge" class="badge success">STABLE</span>
+            </div>
+            <div class="sim-kpis">
+              <div><span>Annual workload</span><strong id="workloadKpi">55.6 h</strong><small>AI compute</small></div>
+              <div><span>Doctor workload</span><strong id="doctorKpi">777.8 h</strong><small>review time</small></div>
+              <div><span>Network load</span><strong id="networkKpi">1.25 TB</strong><small>at 100k cases</small></div>
+              <div><span>Queue risk</span><strong id="queueKpi">Low</strong><small id="queueDetail">review capacity
+                  adequate</small></div>
+            </div>
+            <div class="capacity-bar">
+              <div class="bar-label"><span>AI capacity</span><b id="aiCapacityText">2.0 s / image</b></div>
+              <div class="bar"><i id="aiBar"></i></div>
+            </div>
+            <div class="capacity-bar">
+              <div class="bar-label"><span>Ophthalmologist capacity</span><b id="docCapacityText">28 s / case</b></div>
+              <div class="bar"><i id="docBar"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </section>
+  <script src="app.js"></script>
+</body>
+
+</html>
