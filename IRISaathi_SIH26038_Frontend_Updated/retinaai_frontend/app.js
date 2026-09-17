@@ -1,33 +1,226 @@
-const DEMO_PROFILE = { profileId: 'RA-10482', name: 'Harish Patel', age: 58, gender: 'Male', dm: '9 years', password: '1234' };
-const DEMO_PATIENT_ID = 'PID-2026-8941';
-const state = { profile: null, patientId: '', imageData: '', scanId: 'SCAN-38DE3C22', currentPage: 'overview' };
-const $ = id => document.getElementById(id);
-const toast = (msg) => { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(window.__toast); window.__toast = setTimeout(() => t.classList.remove('show'), 2800) };
-const initials = name => name.split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase() || 'RA';
-function getProfiles() { return JSON.parse(localStorage.getItem('retinaai_profiles') || '[]') }
-function saveProfiles(p) { localStorage.setItem('retinaai_profiles', JSON.stringify(p)) }
-function getScreenings() { return JSON.parse(localStorage.getItem('retinaai_screenings') || '[]') }
-function saveScreenings(items) { localStorage.setItem('retinaai_screenings', JSON.stringify(items)) }
-function getPatientRegistry() { const profiles = getProfiles().filter(x => x.profileId !== DEMO_PROFILE.profileId); return [DEMO_PROFILE, ...profiles] }
-function ensureDemoHistory() { const items = getScreenings(); if (!items.some(x => x.scanId === 'SCAN-SIH-DEMO-0912')) { items.unshift({ date: '12 Sep 2026', patientId: DEMO_PATIENT_ID, scanId: 'SCAN-SIH-DEMO-0912', profileId: DEMO_PROFILE.profileId, name: DEMO_PROFILE.name, age: DEMO_PROFILE.age, gender: DEMO_PROFILE.gender, dm: DEMO_PROFILE.dm, eye: 'Right Eye (OD)', result: 'Level 0: No Diabetic Retinopathy', status: 'Source demo case' }); saveScreenings(items) } }
-function showAuth(which) { $('authChoice').classList.toggle('hidden', which !== 'choice'); $('registerForm').classList.toggle('hidden', which !== 'register'); $('loginForm').classList.toggle('hidden', which !== 'login') }
-function makeProfileId() { return 'RA-' + Math.floor(10000 + Math.random() * 89999) }
-function updatePatientStats() { const registry = getPatientRegistry(); const screenings = getScreenings(); $('totalPatients').textContent = registry.length; $('historyTotalPatients').textContent = registry.length; $('historyTotalCard').textContent = registry.length; $('totalScreenings').textContent = screenings.length; $('overviewScreenings').textContent = screenings.length; $('historyCurrentPatient').textContent = state.profile?.name || '—'; $('historyCurrentPid').textContent = state.patientId || '—'; renderPatientRegistry(); renderScreeningHistory() }
-function renderPatientRegistry() { const body = $('patientRegistryBody'); if (!body) return; const screenings = getScreenings(); const rows = getPatientRegistry().map(p => { const latest = screenings.find(x => x.profileId === p.profileId); return `<tr><td><strong>${p.profileId}</strong></td><td>${p.name}</td><td>${p.age}</td><td>${p.gender}</td><td>${p.dm}</td><td>${latest ? latest.patientId : (p.profileId === DEMO_PROFILE.profileId ? DEMO_PATIENT_ID : '—')}</td><td><button class="table-action" data-select-profile="${p.profileId}">View</button></td></tr>` }).join(''); body.innerHTML = rows || '<tr><td colspan="7">No registered patients yet.</td></tr>'; body.querySelectorAll('[data-select-profile]').forEach(btn => btn.onclick = () => selectRegistryProfile(btn.dataset.selectProfile)) }
-function renderScreeningHistory() { const body = $('screeningHistoryBody'); if (!body) return; const items = getScreenings(); body.innerHTML = items.length ? items.map(x => `<tr><td>${x.date}</td><td><strong>${x.patientId}</strong></td><td>${x.scanId}</td><td>${x.name}</td><td>${x.eye}</td><td>${x.result}</td><td><span class="badge success">${x.status}</span></td></tr>`).join('') : '<tr><td colspan="7">No screening records yet.</td></tr>' }
-function selectRegistryProfile(profileId) { const p = getPatientRegistry().find(x => x.profileId === profileId); if (!p) return; state.profile = p; const latest = getScreenings().find(x => x.profileId === profileId); state.patientId = latest ? latest.patientId : (profileId === DEMO_PROFILE.profileId ? DEMO_PATIENT_ID : 'PID-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000)); localStorage.setItem('retinaai_session', JSON.stringify({ profileId: p.profileId, patientId: state.patientId })); setProfileUI(); updatePatientStats(); toast(`Viewing ${p.name}`) }
-function recordCurrentScreening() { if (!state.profile) return; const items = getScreenings(); if (items.some(x => x.scanId === state.scanId)) return; items.unshift({ date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }), patientId: state.patientId, scanId: state.scanId, profileId: state.profile.profileId, name: state.profile.name, age: state.profile.age, gender: state.profile.gender, dm: state.profile.dm, eye: $('eyeExamined').value, result: 'Level 0: No Diabetic Retinopathy', status: 'Completed' }); saveScreenings(items); updatePatientStats() }
-function setProfileUI() { const p = state.profile; $('sideName').textContent = p.name; $('sidePatient').textContent = state.patientId; $('sideAvatar').textContent = initials(p.name); $('topPatientName').textContent = p.name; $('topPatientId').textContent = state.patientId; $('overviewPatient').textContent = p.name; $('overviewPatientMeta').textContent = `${p.age} yrs • ${p.gender} • Right Eye (OD)`; $('overviewPid').textContent = state.patientId; $('screenName').textContent = p.name; $('screenPid').textContent = state.patientId; $('screenAgeGender').textContent = `${p.age} / ${p.gender}`; $('screenDm').textContent = p.dm;['rPid', 'rName', 'rDm'].forEach((id) => $(id).textContent = id === 'rPid' ? state.patientId : id === 'rName' ? p.name : p.dm); $('rAgeGender').textContent = `${p.age} yrs / ${p.gender}`; updatePatientStats() }
+const DEMO_PROFILE = { 
+    profileId: 'RA-10482', name: 'Harish Patel', age: 58, gender: 'Male', dm: '9 years', password: '1234' 
+};
 
-function openApp() { state.currentPage = 'overview'; $('authScreen').classList.add('hidden'); $('appScreen').classList.remove('hidden'); setProfileUI(); goPage('overview') }
-function goPage(page) { state.currentPage = page; document.querySelectorAll('.page').forEach(x => x.classList.add('hidden')); $(`page-${page}`).classList.remove('hidden'); document.querySelectorAll('.nav-item').forEach(x => x.classList.toggle('active', x.dataset.page === page)); const titles = { overview: 'Screening overview', screening: 'New retinal screening', analysis: 'Explainable AI analysis', report: 'Clinical screening report', history: 'Patient records', simulation: 'Simulink resource simulation' }; $('pageTitle').textContent = titles[page] || 'IRISaathi' }
-function demoProfile() { state.profile = { ...DEMO_PROFILE }; state.patientId = DEMO_PATIENT_ID; localStorage.setItem('retinaai_session', JSON.stringify({ profileId: state.profile.profileId, patientId: state.patientId })); }
-function refreshScan() { state.scanId = 'SCAN-' + Math.random().toString(36).slice(2, 10).toUpperCase(); $('scanId').textContent = state.scanId; $('rScan').textContent = state.scanId }
-function resetPipeline() { document.querySelectorAll('.pipeline-step').forEach(s => { s.classList.remove('running', 'done'); s.querySelector('.step-state').textContent = 'Pending' }); $('pipelineStatus').textContent = 'WAITING'; $('pipelineStatus').className = 'badge neutral' }
-function updateImage(src) { state.imageData = src; $('previewImg').src = src; $('analysisImage').src = src; $('uploadEmpty').classList.add('hidden'); $('uploadPreview').classList.remove('hidden'); $('analyzeBtn').disabled = false }
-function usePlaceholder() { const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600"><defs><radialGradient id="g"><stop stop-color="#d87a45"/><stop offset=".55" stop-color="#8c4732"/><stop offset="1" stop-color="#120d12"/></radialGradient></defs><rect width="900" height="600" fill="#05080c"/><ellipse cx="450" cy="300" rx="360" ry="250" fill="url(#g)"/><g fill="none" stroke="#3c211f" stroke-width="7" opacity=".8"><path d="M450 300 C370 210 300 170 170 120"/><path d="M450 300 C560 220 660 160 770 120"/><path d="M450 300 C340 350 240 410 120 470"/><path d="M450 300 C570 350 680 410 800 470"/></g><circle cx="450" cy="300" r="33" fill="#f5b16c" opacity=".9"/><circle cx="560" cy="300" r="16" fill="#f0b174" opacity=".75"/></svg>`; updateImage('data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg)); $('fileName').textContent = 'retinaai-demo-fundus.svg'; $('fileSize').textContent = 'Demo image' }
-async function runPipeline() { resetPipeline(); $('analyzeBtn').disabled = true; $('pipelineStatus').textContent = 'RUNNING'; $('pipelineStatus').className = 'badge warning'; const labels = ['Quality gate: DeepDRiD', 'CLAHE + normalization', 'DRIVE + IDRiD anatomy', 'IDRiD lesion analysis', 'APTOS severity grading', 'Grad-CAM + evidence', 'Confidence calibration', 'Clinical report']; for (let i = 1; i <= 8; i++) { const el = document.querySelector(`.pipeline-step[data-step="${i}"]`); el.classList.add('running'); el.querySelector('.step-state').textContent = 'Processing'; await new Promise(r => setTimeout(r, 450)); el.classList.remove('running'); el.classList.add('done'); el.querySelector('.step-state').textContent = 'Complete' } $('pipelineStatus').textContent = 'COMPLETE'; $('pipelineStatus').className = 'badge success'; $('analyzeBtn').disabled = false; refreshReportFields(); recordCurrentScreening(); goPage('analysis'); toast('Screening pipeline completed in demo mode') }
-function refreshReportFields() { $('rCenter').textContent = $('center').value; $('rEye').textContent = $('eyeExamined').value; $('rHba').textContent = $('hba1c').value; $('rScan').textContent = state.scanId; $('rPid').textContent = state.patientId }
+const DEMO_PATIENT_ID = 'PID-2026-8941';
+
+const state = { 
+    profile: null, patientId: '', imageData: '', scanId: 'SCAN-38DE3C22', currentPage: 'overview' 
+};
+
+const $ = id => document.getElementById(id);
+
+const toast = (msg) => { 
+    const t = $('toast'); 
+    t.textContent = msg; 
+    t.classList.add('show'); 
+    clearTimeout(window.__toast); window.__toast = setTimeout(() => t.classList.remove('show'), 2800) 
+};
+
+const initials = name => name.split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase() || 'RA';
+
+function getProfiles() { 
+    return JSON.parse(localStorage.getItem('retinaai_profiles') || '[]') 
+}
+
+function saveProfiles(p) { 
+    localStorage.setItem('retinaai_profiles', JSON.stringify(p)) 
+}
+
+function getScreenings() { 
+    return JSON.parse(localStorage.getItem('retinaai_screenings') || '[]') 
+}
+
+function saveScreenings(items) { 
+    localStorage.setItem('retinaai_screenings', JSON.stringify(items)) 
+}
+
+function getPatientRegistry() { 
+    const profiles = getProfiles().filter(x => x.profileId !== DEMO_PROFILE.profileId); 
+    return [DEMO_PROFILE, ...profiles] 
+}
+
+function ensureDemoHistory() { 
+    const items = getScreenings(); if (!items.some(x => x.scanId === 'SCAN-SIH-DEMO-0912')) { 
+        items.unshift(
+            { date: '12 Sep 2026', patientId: DEMO_PATIENT_ID, scanId: 'SCAN-SIH-DEMO-0912', profileId: DEMO_PROFILE.profileId, name: DEMO_PROFILE.name, age: DEMO_PROFILE.age, gender: DEMO_PROFILE.gender, dm: DEMO_PROFILE.dm, eye: 'Right Eye (OD)', result: 'Level 0: No Diabetic Retinopathy', status: 'Source demo case' 
+            }); saveScreenings(items) 
+    } 
+}
+
+function showAuth(which) { 
+    $('authChoice').classList.toggle('hidden', which !== 'choice'); 
+    $('registerForm').classList.toggle('hidden', which !== 'register'); 
+    $('loginForm').classList.toggle('hidden', which !== 'login') 
+}
+
+function makeProfileId() { 
+    return 'RA-' + Math.floor(10000 + Math.random() * 89999) 
+}
+
+function updatePatientStats() { 
+    const registry = getPatientRegistry(); 
+    const screenings = getScreenings(); 
+    $('totalPatients').textContent = registry.length; $('historyTotalPatients').textContent = registry.length; 
+    $('historyTotalCard').textContent = registry.length; 
+    $('totalScreenings').textContent = screenings.length; 
+    $('overviewScreenings').textContent = screenings.length; 
+    $('historyCurrentPatient').textContent = state.profile?.name || '—'; 
+    $('historyCurrentPid').textContent = state.patientId || '—'; 
+    renderPatientRegistry(); renderScreeningHistory() 
+}
+
+function renderPatientRegistry() { 
+    const body = $('patientRegistryBody'); 
+    if (!body) return; const screenings = getScreenings(); 
+    const rows = getPatientRegistry().map(p => { 
+        const latest = screenings.find(x => x.profileId === p.profileId); 
+        return `<tr><td>
+        <strong>${p.profileId}</strong></td><td>
+        ${p.name}</td><td>${p.age}</td><td>
+        ${p.gender}</td><td>${p.dm}</td><td>
+        ${latest ? latest.patientId : (p.profileId === DEMO_PROFILE.profileId ? DEMO_PATIENT_ID : '—')}</td><td>
+        <button class="table-action" data-select-profile="${p.profileId}">View</button></td></tr>` }).join(''); 
+        body.innerHTML = rows || '<tr><td colspan="7">No registered patients yet.</td></tr>'; 
+        body.querySelectorAll('[data-select-profile]').forEach(btn => btn.onclick = () => selectRegistryProfile(btn.dataset.selectProfile)) 
+}
+
+function renderScreeningHistory() { 
+    const body = $('screeningHistoryBody'); 
+    if (!body) return; const items = getScreenings(); 
+    body.innerHTML = items.length ? items.map(x => `<tr><td>
+    ${x.date}</td><td>
+    <strong>${x.patientId}</strong></td><td>
+    ${x.scanId}</td><td>${x.name}</td><td>${x.eye}</td><td>${x.result}</td><td>
+    <span class="badge success">${x.status}</span></td></tr>`).join('') : '<tr><td colspan="7">No screening records yet.</td></tr>' 
+}
+
+function selectRegistryProfile(profileId) { 
+    const p = getPatientRegistry().find(x => x.profileId === profileId); 
+    if (!p) return; state.profile = p; 
+    const latest = getScreenings().find(x => x.profileId === profileId); 
+    state.patientId = latest ? latest.patientId : (profileId === DEMO_PROFILE.profileId ? DEMO_PATIENT_ID : 'PID-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000)); 
+    localStorage.setItem('retinaai_session', JSON.stringify({ profileId: p.profileId, patientId: state.patientId })); 
+    setProfileUI(); updatePatientStats(); toast(`Viewing ${p.name}`) 
+}
+
+function recordCurrentScreening() { 
+    if (!state.profile) return; 
+    const items = getScreenings(); 
+    if (items.some(x => x.scanId === state.scanId)) return; 
+    items.unshift({ 
+        date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }), patientId: state.patientId, scanId: state.scanId, profileId: state.profile.profileId, name: state.profile.name, age: state.profile.age, gender: state.profile.gender, dm: state.profile.dm, eye: $('eyeExamined').value, result: 'Level 0: No Diabetic Retinopathy', status: 'Completed' 
+    });
+    saveScreenings(items); 
+    updatePatientStats() 
+}
+
+function setProfileUI() { 
+    const p = state.profile; 
+    $('sideName').textContent = p.name; 
+    $('sidePatient').textContent = state.patientId; 
+    $('sideAvatar').textContent = initials(p.name); 
+    $('topPatientName').textContent = p.name; 
+    $('topPatientId').textContent = state.patientId; 
+    $('overviewPatient').textContent = p.name; 
+    $('overviewPatientMeta').textContent = `${p.age} yrs • ${p.gender} • Right Eye (OD)`; 
+    $('overviewPid').textContent = state.patientId; 
+    $('screenName').textContent = p.name; 
+    $('screenPid').textContent = state.patientId; 
+    $('screenAgeGender').textContent = `${p.age} / ${p.gender}`; 
+    $('screenDm').textContent = p.dm;['rPid', 'rName', 'rDm'].forEach((id) => $(id).textContent = id === 'rPid' ? state.patientId : id === 'rName' ? p.name : p.dm); 
+    $('rAgeGender').textContent = `${p.age} yrs / ${p.gender}`; 
+    updatePatientStats() 
+}
+
+function openApp() { 
+    state.currentPage = 'overview'; 
+    $('authScreen').classList.add('hidden'); 
+    $('appScreen').classList.remove('hidden'); 
+    setProfileUI(); 
+    goPage('overview') 
+}
+
+function goPage(page) { 
+    state.currentPage = page; 
+    document.querySelectorAll('.page').forEach(x => x.classList.add('hidden')); 
+    $(`page-${page}`).classList.remove('hidden'); 
+    document.querySelectorAll('.nav-item').forEach(x => x.classList.toggle('active', x.dataset.page === page)); 
+    const titles = { 
+        overview: 'Screening overview', screening: 'New retinal screening', analysis: 'Explainable AI analysis', report: 'Clinical screening report', history: 'Patient records', simulation: 'Simulink resource simulation' 
+    }; 
+    $('pageTitle').textContent = titles[page] || 'IRISaathi' 
+}
+
+function demoProfile() { 
+    state.profile = { ...DEMO_PROFILE }; 
+    state.patientId = DEMO_PATIENT_ID; 
+    localStorage.setItem('retinaai_session', JSON.stringify({ 
+        profileId: state.profile.profileId, patientId: state.patientId 
+    })); 
+}
+
+function refreshScan() { 
+    state.scanId = 'SCAN-' + Math.random().toString(36).slice(2, 10).toUpperCase(); 
+    $('scanId').textContent = state.scanId; 
+    $('rScan').textContent = state.scanId 
+}
+
+function resetPipeline() { 
+    document.querySelectorAll('.pipeline-step').forEach(s => { 
+        s.classList.remove('running', 'done'); 
+        s.querySelector('.step-state').textContent = 'Pending' 
+    }); 
+    $('pipelineStatus').textContent = 'WAITING'; 
+    $('pipelineStatus').className = 'badge neutral' 
+}
+
+function updateImage(src) { 
+    state.imageData = src; 
+    $('previewImg').src = src; 
+    $('analysisImage').src = src; 
+    $('uploadEmpty').classList.add('hidden'); 
+    $('uploadPreview').classList.remove('hidden'); 
+    $('analyzeBtn').disabled = false 
+}
+
+function usePlaceholder() { 
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600"><defs><radialGradient id="g"><stop stop-color="#d87a45"/><stop offset=".55" stop-color="#8c4732"/><stop offset="1" stop-color="#120d12"/></radialGradient></defs><rect width="900" height="600" fill="#05080c"/><ellipse cx="450" cy="300" rx="360" ry="250" fill="url(#g)"/><g fill="none" stroke="#3c211f" stroke-width="7" opacity=".8"><path d="M450 300 C370 210 300 170 170 120"/><path d="M450 300 C560 220 660 160 770 120"/><path d="M450 300 C340 350 240 410 120 470"/><path d="M450 300 C570 350 680 410 800 470"/></g><circle cx="450" cy="300" r="33" fill="#f5b16c" opacity=".9"/><circle cx="560" cy="300" r="16" fill="#f0b174" opacity=".75"/></svg>`; 
+    updateImage('data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg)); 
+    $('fileName').textContent = 'retinaai-demo-fundus.svg'; 
+    $('fileSize').textContent = 'Demo image' 
+}
+
+async function runPipeline() { 
+    resetPipeline(); 
+    $('analyzeBtn').disabled = true; 
+    $('pipelineStatus').textContent = 'RUNNING'; 
+    $('pipelineStatus').className = 'badge warning'; 
+    const labels = ['Quality gate: DeepDRiD', 'CLAHE + normalization', 'DRIVE + IDRiD anatomy', 'IDRiD lesion analysis', 'APTOS severity grading', 'Grad-CAM + evidence', 'Confidence calibration', 'Clinical report']; 
+    for (let i = 1; i <= 8; i++) { 
+        const el = document.querySelector(`.pipeline-step[data-step="${i}"]`); 
+        el.classList.add('running'); 
+        el.querySelector('.step-state').textContent = 'Processing'; 
+        await new Promise(r => setTimeout(r, 450)); 
+        el.classList.remove('running'); 
+        el.classList.add('done'); 
+        el.querySelector('.step-state').textContent = 'Complete' 
+    } 
+    $('pipelineStatus').textContent = 'COMPLETE'; 
+    $('pipelineStatus').className = 'badge success'; 
+    $('analyzeBtn').disabled = false; refreshReportFields(); 
+    recordCurrentScreening(); 
+    goPage('analysis'); 
+    toast('Screening pipeline completed in demo mode') 
+}
+
+function refreshReportFields() { 
+    $('rCenter').textContent = $('center').value; 
+    $('rEye').textContent = $('eyeExamined').value; 
+    $('rHba').textContent = $('hba1c').value; $('rScan').textContent = state.scanId; 
+    $('rPid').textContent = state.patientId 
+}
+
 function bind() {
     $('registeredBtn').onclick = () => showAuth('login'); $('newAccountBtn').onclick = () => { showAuth('register'); $('newProfileId').textContent = makeProfileId() }; document.querySelectorAll('[data-auth-back]').forEach(b => b.onclick = () => showAuth('choice')); $('fillDemoBtn').onclick = () => { demoProfile(); openApp(); toast('Demo profile loaded') }; $('demoLoginBtn').onclick = () => { demoProfile(); openApp(); toast('Logged in with SIH demo profile') };
     $('registerForm').onsubmit = e => { e.preventDefault(); const p = { profileId: $('newProfileId').textContent, name: $('regName').value.trim(), age: Number($('regAge').value), gender: $('regGender').value, dm: $('regDm').value.trim(), password: $('regPassword').value }; const profiles = getProfiles(); profiles.push(p); saveProfiles(profiles); state.profile = p; state.patientId = 'PID-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000); localStorage.setItem('retinaai_session', JSON.stringify({ profileId: p.profileId, patientId: state.patientId })); toast(`Account created. Profile ID: ${p.profileId}`); openApp() };
@@ -38,5 +231,7 @@ function bind() {
     document.querySelectorAll('.visual-tab').forEach(b => b.onclick = () => { document.querySelectorAll('.visual-tab').forEach(x => x.classList.remove('active')); b.classList.add('active'); $('heatOverlay').classList.add('hidden'); $('lesionBoxes').classList.add('hidden'); if (b.dataset.visual === 'heatmap') $('heatOverlay').classList.remove('hidden'); if (b.dataset.visual === 'lesions' || b.dataset.visual === 'overlay') $('lesionBoxes').classList.remove('hidden') }); $('approveBtn').onclick = () => toast('Review marked complete'); $('flagBtn').onclick = () => toast('Case flagged for specialist review'); $('printReportBtn').onclick = () => window.print();
     const sim = [['patientsSlider', 'patientsOut'], ['aiSlider', 'aiOut'], ['docSlider', 'docOut'], ['bandSlider', 'bandOut']]; sim.forEach(([a, b]) => $(a).oninput = () => updateSim()); updateSim();
 }
-function updateSim() { const patients = Number($('patientsSlider').value), ai = Number($('aiSlider').value), doc = Number($('docSlider').value), band = Number($('bandSlider').value); $('patientsOut').textContent = patients.toLocaleString(); $('aiOut').textContent = ai.toFixed(1) + ' s'; $('docOut').textContent = doc + ' s'; $('bandOut').textContent = band + ' Mbps'; const aiHours = patients * ai / 3600, docHours = patients * doc / 3600, networkTb = patients * 13 / 1024 / 1024; const risk = doc > 50 || band < 4 || patients > 180000 ? 'High' : doc > 35 || band < 7 || patients > 140000 ? 'Moderate' : 'Low'; $('workloadKpi').textContent = aiHours.toFixed(1) + ' h'; $('doctorKpi').textContent = docHours.toFixed(1) + ' h'; $('networkKpi').textContent = networkTb.toFixed(2) + ' TB'; $('queueKpi').textContent = risk; $('queueDetail').textContent = risk === 'Low' ? 'review capacity adequate' : risk === 'Moderate' ? 'monitor doctor queue' : 'capacity expansion advised'; $('simBadge').textContent = risk === 'Low' ? 'STABLE' : risk === 'Moderate' ? 'WATCH' : 'BOTTLENECK'; $('simBadge').className = 'badge ' + (risk === 'Low' ? 'success' : 'warning'); $('aiCapacityText').textContent = ai.toFixed(1) + ' s / image'; $('docCapacityText').textContent = doc + ' s / case'; $('aiBar').style.width = Math.min(95, ai / 10 * 100) + '%'; $('docBar').style.width = Math.min(95, doc / 90 * 100) + '%' }
-window.addEventListener('DOMContentLoaded', () => { ensureDemoHistory(); bind(); const session = JSON.parse(localStorage.getItem('retinaai_session') || 'null'); if (session) { let p = getProfiles().find(x => x.profileId === session.profileId); if (session.profileId === DEMO_PROFILE.profileId) p = DEMO_PROFILE; if (p) { state.profile = p; state.patientId = session.patientId; openApp(); } } usePlaceholder(); updatePatientStats(); });
+
+function updateSim() { 
+    const patients = Number($('patientsSlider').value), ai = Number($('aiSlider').value), doc = Number($('docSlider').value), band = Number($('bandSlider').value); $('patientsOut').textContent = patients.toLocaleString(); $('aiOut').textContent = ai.toFixed(1) + ' s'; $('docOut').textContent = doc + ' s'; $('bandOut').textContent = band + ' Mbps'; const aiHours = patients * ai / 3600, docHours = patients * doc / 3600, networkTb = patients * 13 / 1024 / 1024; const risk = doc > 50 || band < 4 || patients > 180000 ? 'High' : doc > 35 || band < 7 || patients > 140000 ? 'Moderate' : 'Low'; $('workloadKpi').textContent = aiHours.toFixed(1) + ' h'; $('doctorKpi').textContent = docHours.toFixed(1) + ' h'; $('networkKpi').textContent = networkTb.toFixed(2) + ' TB'; $('queueKpi').textContent = risk; $('queueDetail').textContent = risk === 'Low' ? 'review capacity adequate' : risk === 'Moderate' ? 'monitor doctor queue' : 'capacity expansion advised'; $('simBadge').textContent = risk === 'Low' ? 'STABLE' : risk === 'Moderate' ? 'WATCH' : 'BOTTLENECK'; $('simBadge').className = 'badge ' + (risk === 'Low' ? 'success' : 'warning'); $('aiCapacityText').textContent = ai.toFixed(1) + ' s / image'; $('docCapacityText').textContent = doc + ' s / case'; $('aiBar').style.width = Math.min(95, ai / 10 * 100) + '%'; $('docBar').style.width = Math.min(95, doc / 90 * 100) + '%' }
+    window.addEventListener('DOMContentLoaded', () => { ensureDemoHistory(); bind(); const session = JSON.parse(localStorage.getItem('retinaai_session') || 'null'); if (session) { let p = getProfiles().find(x => x.profileId === session.profileId); if (session.profileId === DEMO_PROFILE.profileId) p = DEMO_PROFILE; if (p) { state.profile = p; state.patientId = session.patientId; openApp(); } } usePlaceholder(); updatePatientStats(); });
